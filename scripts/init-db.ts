@@ -5,7 +5,7 @@ import { initializeProductSchema } from "../lib/db";
 async function main() {
   const { runMigrations } = await getMigrations(auth.options);
   await runMigrations();
-  initializeProductSchema();
+  await initializeProductSchema();
   console.log("chit.md database is ready.");
 }
 

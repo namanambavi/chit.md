@@ -60,43 +60,43 @@ describe("drop lifecycle", () => {
     for (const suffix of ["", "-shm", "-wal"]) fs.rmSync(`${testDatabase}${suffix}`, { force: true });
   });
 
-  it("publishes, reads, and claims a page", () => {
-    const published = drops.createDrop({ markdown: "# Decision\n\nChoose A or B." });
+  it("publishes, reads, and claims a page", async () => {
+    const published = await drops.createDrop({ markdown: "# Decision\n\nChoose A or B." });
     expect(published.url).toContain(`/${published.slug}`);
     expect(published).not.toHaveProperty("inbox_url");
 
-    const drop = drops.getDropBySlug(published.slug);
+    const drop = await drops.getDropBySlug(published.slug);
     expect(drop?.title).toBe("Decision");
 
     expect(published.claim_url).not.toBeNull();
     const claimToken = published.claim_url!.split("/").at(-1)!;
-    expect(drops.claimDrop(claimToken, "user-1")).toEqual({ ok: true, slug: published.slug });
-    expect(drops.getDropBySlug(published.slug)?.expires_at).toBeNull();
+    expect(await drops.claimDrop(claimToken, "user-1")).toEqual({ ok: true, slug: published.slug });
+    expect((await drops.getDropBySlug(published.slug))?.expires_at).toBeNull();
   });
 
-  it("saves authenticated publishes directly to their owner", () => {
-    const published = drops.createDrop({ markdown: "# Account note" }, { id: "user-42", name: "Ada" });
-    const drop = drops.getDropBySlug(published.slug);
+  it("saves authenticated publishes directly to their owner", async () => {
+    const published = await drops.createDrop({ markdown: "# Account note" }, { id: "user-42", name: "Ada" });
+    const drop = await drops.getDropBySlug(published.slug);
     expect(published).toMatchObject({ owned: true, owner: { name: "Ada" }, claim_url: null, expires_at: null });
     expect(drop?.owner_id).toBe("user-42");
     expect(drop?.claimed_at).not.toBeNull();
   });
 
   it("physically removes expired unclaimed content", async () => {
-    const published = drops.createDrop({ markdown: "# Temporary" });
-    const { db } = await import("@/lib/db");
-    db.prepare("UPDATE drops SET expires_at = ? WHERE slug = ?").run(Date.now() - 1, published.slug);
-    expect(drops.getDropBySlug(published.slug)).toBeNull();
-    expect(db.prepare("SELECT id FROM drops WHERE slug = ?").get(published.slug)).toBeUndefined();
-    expect(db.prepare("SELECT slug FROM expired_chits WHERE slug = ?").get(published.slug)).toEqual({ slug: published.slug });
+    const published = await drops.createDrop({ markdown: "# Temporary" });
+    const { execute, queryOne } = await import("@/lib/db");
+    await execute("UPDATE drops SET expires_at = ? WHERE slug = ?", [Date.now() - 1, published.slug]);
+    expect(await drops.getDropBySlug(published.slug)).toBeNull();
+    expect(await queryOne("SELECT id FROM drops WHERE slug = ?", [published.slug])).toBeUndefined();
+    expect(await queryOne("SELECT slug FROM expired_chits WHERE slug = ?", [published.slug])).toEqual({ slug: published.slug });
   });
 
-  it("does not allow a second user to steal a claimed page", () => {
-    const published = drops.createDrop({ markdown: "# Ownership" });
+  it("does not allow a second user to steal a claimed page", async () => {
+    const published = await drops.createDrop({ markdown: "# Ownership" });
     expect(published.claim_url).not.toBeNull();
     const claimToken = published.claim_url!.split("/").at(-1)!;
-    expect(drops.claimDrop(claimToken, "owner-a").ok).toBe(true);
-    expect(drops.claimDrop(claimToken, "owner-b")).toEqual({ ok:false, reason:"claimed" });
-    expect(drops.getDropBySlug(published.slug)?.owner_id).toBe("owner-a");
+    expect((await drops.claimDrop(claimToken, "owner-a")).ok).toBe(true);
+    expect(await drops.claimDrop(claimToken, "owner-b")).toEqual({ ok:false, reason:"claimed" });
+    expect((await drops.getDropBySlug(published.slug))?.owner_id).toBe("owner-a");
   });
 });

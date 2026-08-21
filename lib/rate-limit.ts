@@ -1,23 +1,17 @@
-import { db } from "@/lib/db";
+import { execute, productSchemaReady, queryOne } from "@/lib/db";
 import { hashAddress } from "@/lib/security";
 
 export function requestAddress(request: Request) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
 }
 
-export function consumeRateLimit(bucket: string, address: string, maximum: number) {
-  const now = Date.now();
-  const windowStart = Math.floor(now / 3_600_000) * 3_600_000;
+export async function consumeRateLimit(bucket: string, address: string, maximum: number) {
+  await productSchemaReady;
+  const windowStart = Math.floor(Date.now() / 3_600_000) * 3_600_000;
   const addressHash = hashAddress(address);
-  const transaction = db.transaction(() => {
-    db.prepare("DELETE FROM rate_limits WHERE window_start < ?").run(windowStart - 3_600_000);
-    const row = db.prepare("SELECT count FROM rate_limits WHERE bucket = ? AND address_hash = ? AND window_start = ?")
-      .get(bucket, addressHash, windowStart) as { count: number } | undefined;
-    if (row && row.count >= maximum) return false;
-    db.prepare(`INSERT INTO rate_limits (bucket, address_hash, window_start, count) VALUES (?, ?, ?, 1)
-      ON CONFLICT(bucket, address_hash, window_start) DO UPDATE SET count = count + 1`)
-      .run(bucket, addressHash, windowStart);
-    return true;
-  });
-  return transaction();
+  await execute("DELETE FROM rate_limits WHERE window_start < ?", [windowStart - 3_600_000]);
+  const row = await queryOne<{ count: number }>(`INSERT INTO rate_limits (bucket, address_hash, window_start, count) VALUES (?, ?, ?, 1)
+    ON CONFLICT(bucket, address_hash, window_start) DO UPDATE SET count = rate_limits.count + 1
+    RETURNING count`, [bucket, addressHash, windowStart]);
+  return Number(row?.count || 1) <= maximum;
 }

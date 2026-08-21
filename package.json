@@ -5,11 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "npm run db:init && next start",
+    "start": "npm run db:migrate && next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:init": "tsx scripts/init-db.ts"
+    "db:init": "tsx scripts/init-db.ts",
+    "db:migrate": "tsx scripts/init-db.ts"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.0",
@@ -26,18 +27,21 @@
     "codemirror": "^6.0.2",
     "nanoid": "^5.1.6",
     "next": "^16.3.2",
+    "pg": "^8.23.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-markdown": "^10.1.0",
     "rehype-highlight": "^7.0.2",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
+    "resend": "^6.22.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.14",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "eslint": "^9.39.1",

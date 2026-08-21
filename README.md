@@ -81,7 +81,8 @@ a 24-hour page and a private keep link.
 - One-click copy for the public link and Markdown source
 - Anonymous publishing with a real 24-hour countdown
 - Expired-page tombstones with no retained document body
-- Better Auth email/password accounts
+- Better Auth email/password accounts, GitHub and Google sign-in
+- Resend email verification and password reset delivery
 - Account dashboard, ownership, editing, and deletion
 - Owner attribution on saved public chits
 - Rate limits, payload limits, hashed capability tokens, and untrusted HTML
@@ -95,25 +96,29 @@ a 24-hour page and a private keep link.
 | `BETTER_AUTH_SECRET` | Production | Random secret, at least 32 characters |
 | `BETTER_AUTH_URL` | Yes | Canonical application origin |
 | `NEXT_PUBLIC_APP_URL` | Yes | Public origin used in returned links |
-| `DATABASE_PATH` | No | SQLite path; defaults to `./data/said.db` |
+| `DATABASE_URL` | Production | Postgres connection string; Railway uses a private service reference |
+| `DATABASE_PATH` | Local only | SQLite path; defaults to `./data/chit.db` |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | For GitHub sign-in | OAuth application credentials |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | For Google sign-in | OAuth application credentials |
+| `RESEND_API_KEY` / `EMAIL_FROM` | For email delivery | Verification and password reset emails |
 
 The checked-in `.env.example` is safe to copy for local development.
 
 ## Deploy
 
-The included `Dockerfile` and `railway.json` target a service with a persistent
-filesystem. Mount a volume at `/data` and set:
+The included `Dockerfile` and `railway.json` target Railway with managed
+Postgres over private networking. Set:
 
 ```text
-DATABASE_PATH=/data/chit.db
+DATABASE_URL=${{Postgres.DATABASE_URL}}
 BETTER_AUTH_SECRET=<at least 32 random characters>
 BETTER_AUTH_URL=https://chit.md
 NEXT_PUBLIC_APP_URL=https://chit.md
 ```
 
-SQLite is intentionally simple for the first deployment. Do not place this
-configuration on an ephemeral serverless filesystem. Move to a hosted SQL
-adapter before horizontal scaling.
+Local development stays zero-setup with SQLite; production uses Postgres. The
+start command runs idempotent Better Auth and product migrations before serving
+traffic.
 
 ## Verify a change
 

@@ -11,15 +11,15 @@ import { ExpiryCountdown } from "@/components/expiry-countdown";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params; const drop = getDropBySlug(slug);
-  return drop ? { title: drop.title, description: `A chit passed through chit.md` } : isExpiredChitSlug(slug) ? { title: "Chit expired" } : { title: "Page unavailable" };
+  const { slug } = await params; const drop = await getDropBySlug(slug);
+  return drop ? { title: drop.title, description: `A chit passed through chit.md` } : await isExpiredChitSlug(slug) ? { title: "Chit expired" } : { title: "Page unavailable" };
 }
 
 export default async function DropPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params; const drop = getDropBySlug(slug, true);
-  if (!drop && isExpiredChitSlug(slug)) return <main className="expired expired-chit"><div className="chit-stack"><span className="route-label">Expired</span><h1>This chit is gone.</h1><p>Its Markdown was deleted after 24 hours because nobody kept it.</p><Link className="button-primary" href="/new">Make a new chit</Link></div></main>;
+  const { slug } = await params; const drop = await getDropBySlug(slug, true);
+  if (!drop && await isExpiredChitSlug(slug)) return <main className="expired expired-chit"><div className="chit-stack"><span className="route-label">Expired</span><h1>This chit is gone.</h1><p>Its Markdown was deleted after 24 hours because nobody kept it.</p><Link className="button-primary" href="/new">Make a new chit</Link></div></main>;
   if (!drop) notFound();
-  const ownerName = getDropOwnerName(drop.owner_id);
+  const ownerName = await getDropOwnerName(drop.owner_id);
   return <main className="page-wrap"><article className="doc-shell chit-stack reading-chit">
     <div className="doc-meta"><Link className="brand" href="/"><span className="brand-mark" aria-hidden="true"></span>chit.md</Link><div className="doc-actions">{drop.claimed_at || !drop.expires_at ? <span>Kept chit</span> : <ExpiryCountdown expiresAt={drop.expires_at}/>}<CopyButton value={drop.markdown}/><ThemeToggle/></div></div>
     {ownerName&&<p className="doc-byline">By {ownerName}</p>}
