@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /claim/
+Disallow: /dashboard/
+Disallow: /api/v1/inbox/

@@ -1,0 +1,2 @@
+import { appUrl } from "@/lib/config";
+export function GET(){const base=appUrl();return Response.json({name:"chit.md",description:"Share Markdown at a public URL.",documentation_url:`${base}/docs`,instructions_url:`${base}/skill.md`,openapi_url:`${base}/openapi.json`,capabilities:["publish_markdown","publish_to_account","read_markdown","claim_chit"]})}

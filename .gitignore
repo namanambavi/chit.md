@@ -1,0 +1,20 @@
+node_modules/
+.next/
+out/
+
+# Local configuration
+.env
+.env.local
+.env.*.local
+
+# Runtime data
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Tooling and OS files
+*.tsbuildinfo
+.DS_Store
+coverage/
+
