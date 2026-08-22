@@ -1,2 +1,2 @@
-import { appUrl } from "@/lib/config";
-export function GET(){const base=appUrl();return new Response(`# chit.md\n\nPut Markdown at a public URL. Anonymous chits last 24 hours; authenticated chits are saved to the account.\n\n- Agent instructions: ${base}/skill.md\n- Documentation: ${base}/docs\n- OpenAPI: ${base}/openapi.json\n- Publish: ${base}/api/v1/drops\n`,{headers:{"content-type":"text/plain; charset=utf-8"}})}
+import { homepageMarkdown } from "@/lib/public-content";
+export function GET(){return new Response(homepageMarkdown(),{headers:{"content-type":"text/plain; charset=utf-8","cache-control":"public, max-age=300"}})}

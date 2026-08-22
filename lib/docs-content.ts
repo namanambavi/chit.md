@@ -1,4 +1,4 @@
-export const docsMarkdown = `# Publish from an agent
+export const docsMarkdown = `# chit.md API — Publish from an agent
 
 POST Markdown and get a public link back.
 
@@ -44,7 +44,7 @@ curl -X POST https://chit.md/api/v1/drops \\
   --data-binary @proposal.md
 \`\`\`
 
-The chit is saved to that user. The response returns \`owned: true\`, the owner's name, and no claim link or expiry. Treat the key like a password. Never put it in a URL, Markdown file, log, or public chit. Keys can be named and revoked from the dashboard.
+The chit is saved to that user. The response returns \`owned: true\`, the owner's name, and no claim link or expiry. Saved chits can be edited or permanently deleted from [Your chits](/dashboard). Treat the key like a password. Never put it in a URL, Markdown file, log, or public chit. Keys can be named and revoked from the dashboard.
 
 If an authenticated request returns \`401\`, stop and ask the human to create a new key. Do not silently publish an anonymous chit.
 

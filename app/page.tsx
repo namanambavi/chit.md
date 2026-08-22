@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { Nav } from "@/components/nav";
 import { auth } from "@/lib/auth";
+import { agentReadinessCopy, softwareApplicationJsonLd } from "@/lib/public-content";
 
 /*
 THESIS: chit.md turns a file handoff into the familiar act of passing one crisp note; it refuses both generic SaaS cards and nostalgic paper cosplay.
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const session = await auth.api.getSession({ headers: await headers() });
   return <><Nav/><main className="home-page">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(softwareApplicationJsonLd()).replace(/</g,"\\u003c")}}/>
     <section className="home-hero">
       <div className="home-copy">
         <span className="home-kicker">{session ? `Signed in as ${session.user.name}` : "Markdown, on a link"}</span>
@@ -41,6 +43,10 @@ export default async function Home() {
       <div><strong>Paste</strong><span>Start with Markdown.</span></div>
       <div><strong>Send</strong><span>Share one URL.</span></div>
       <div><strong>Keep</strong><span>Sign in and every new chit is saved.</span></div>
+    </section>
+    <section className="home-agent-readiness" aria-labelledby="agent-ready-heading">
+      <div><span className="home-kicker">Built for a handoff</span><h2 id="agent-ready-heading">{agentReadinessCopy.heading}</h2><p>{agentReadinessCopy.intro}</p></div>
+      <div className="home-agent-details"><p>{agentReadinessCopy.anonymous}</p><p>{agentReadinessCopy.account}</p><p>{agentReadinessCopy.agents} <Link href="/docs">Read the agent docs.</Link></p></div>
     </section>
   </main></>;
 }

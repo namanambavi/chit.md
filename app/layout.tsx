@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "chit.md — Markdown, on a link", template: "%s — chit.md" },
-  description: "Share Markdown at a URL.",
+  description: "Publish Markdown as a clean public URL for people and agents.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
 };
 

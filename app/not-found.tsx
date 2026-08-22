@@ -1,2 +1,2 @@
 import Link from "next/link";
-export default function NotFound(){return <main className="expired"><div className="chit-stack"><span className="route-label">Not found</span><h1>No chit here.</h1><p>Check the link, or start a new one.</p><Link className="button-primary" href="/new">New chit</Link></div></main>}
+export default function NotFound(){return <main className="expired"><div className="chit-stack"><span className="route-label">Not found</span><h1>No chit here.</h1><p>The link may be wrong, deleted, or expired. Start a new chit or use the agent index to find the right endpoint.</p><div className="editor-actions"><Link className="button-primary" href="/new">New chit</Link><Link className="button-secondary" href="/llms.txt">Agent index</Link></div></div></main>}

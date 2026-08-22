@@ -91,6 +91,10 @@ export async function updateOwnedDrop(slug: string, userId: string, input: { tit
     [input.title, input.markdown, Date.now(), slug, userId])) === 1;
 }
 
+export async function deleteOwnedDrop(slug: string, userId: string) {
+  return (await execute("DELETE FROM drops WHERE slug = ? AND owner_id = ?", [slug, userId])) === 1;
+}
+
 function normalizeDrop(drop: Drop): Drop {
   return {
     ...drop,

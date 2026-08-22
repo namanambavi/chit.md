@@ -6,6 +6,9 @@ import { publishSchema, titleFromMarkdown } from "@/lib/schemas";
 import { safeInternalPath } from "@/lib/navigation";
 import { formatExpiryCompact, formatExpiryRemaining } from "@/lib/expiry";
 import { docsMarkdown } from "@/lib/docs-content";
+import { preferredRepresentation } from "@/lib/accept";
+import { apiError, handleApiError } from "@/lib/http";
+import { agentReadinessCopy, homepageMarkdown, notFoundMarkdown, softwareApplicationJsonLd } from "@/lib/public-content";
 
 const testDirectory = path.join(process.cwd(), "work");
 const testDatabase = path.join(testDirectory, "said-test.db");
@@ -41,6 +44,50 @@ describe("input contract", () => {
     expect(docsMarkdown).toContain("CHIT_API_KEY");
     expect(docsMarkdown).toContain("Agent access");
     expect(docsMarkdown).not.toContain("CHIT_SESSION_TOKEN");
+  });
+});
+
+describe("agent-readable HTTP contracts", () => {
+  it("negotiates Markdown using q-values, specificity, and client order", () => {
+    expect(preferredRepresentation(null)).toBe("text/html");
+    expect(preferredRepresentation("text/markdown, text/html;q=0.8")).toBe("text/markdown");
+    expect(preferredRepresentation("text/markdown;q=0, text/html, */*;q=1")).toBe("text/html");
+    expect(preferredRepresentation("application/pdf")).toBeNull();
+  });
+
+  it("serves substantial homepage guidance and a recoverable Markdown 404", () => {
+    const homepage = homepageMarkdown("https://chit.md");
+    expect(homepage.length).toBeGreaterThan(500);
+    expect(Object.values(agentReadinessCopy).join(" ").length).toBeGreaterThan(500);
+    expect(homepage).toContain("## When to use chit.md");
+    expect(homepage).toContain("https://chit.md/openapi.json");
+    expect(notFoundMarkdown("https://chit.md")).toContain("https://chit.md/llms.txt");
+  });
+
+  it("publishes parseable SoftwareApplication JSON-LD", () => {
+    expect(softwareApplicationJsonLd("https://chit.md")).toMatchObject({ "@type": "SoftwareApplication", name: "chit.md", url: "https://chit.md" });
+  });
+
+  it("returns structured JSON errors with recovery guidance", async () => {
+    const response = apiError("Missing.", 404);
+    await expect(response.json()).resolves.toMatchObject({ error: "Missing.", message: "Missing.", code: "NOT_FOUND", hint: expect.any(String) });
+    const invalidJson = handleApiError(new SyntaxError("bad JSON"));
+    await expect(invalidJson.json()).resolves.toMatchObject({ code: "INVALID_REQUEST" });
+  });
+
+  it("publishes discoverable machine-readable resources", async () => {
+    const [{ GET: getLlms }, { GET: getSkill }, { GET: getAgentManifest }, { GET: getUnknownApi }] = await Promise.all([
+      import("@/app/llms.txt/route"),
+      import("@/app/skill.md/route"),
+      import("@/app/.well-known/agent.json/route"),
+      import("@/app/api/[...path]/route"),
+    ]);
+    expect(await getLlms().text()).toContain("## When to use chit.md");
+    const skill = getSkill();
+    expect(skill.headers.get("content-type")).toContain("text/markdown");
+    expect(await skill.text()).toContain("## When to use this");
+    await expect(getAgentManifest().json()).resolves.toMatchObject({ name: "chit.md", openapi_url: expect.stringContaining("/openapi.json") });
+    await expect(getUnknownApi().json()).resolves.toMatchObject({ code: "NOT_FOUND", hint: expect.any(String) });
   });
 });
 
@@ -105,5 +152,31 @@ describe("drop lifecycle", () => {
     expect((await drops.claimDrop(claimToken, "owner-a")).ok).toBe(true);
     expect(await drops.claimDrop(claimToken, "owner-b")).toEqual({ ok:false, reason:"claimed" });
     expect((await drops.getDropBySlug(published.slug))?.owner_id).toBe("owner-a");
+  });
+
+  it("deletes only the owner's chit", async () => {
+    const published = await drops.createDrop({ markdown: "# Delete me" }, { id: "owner-a", name: "Ada" });
+
+    expect(await drops.deleteOwnedDrop(published.slug, "owner-b")).toBe(false);
+    expect(await drops.getDropBySlug(published.slug)).not.toBeNull();
+
+    expect(await drops.deleteOwnedDrop(published.slug, "owner-a")).toBe(true);
+    expect(await drops.getDropBySlug(published.slug)).toBeNull();
+    expect(await drops.deleteOwnedDrop(published.slug, "owner-a")).toBe(false);
+  });
+
+  it("serves canonical Markdown and a recoverable Markdown 404", async () => {
+    const published = await drops.createDrop({ markdown: "# Negotiated chit" }, { id: "owner-a", name: "Ada" });
+    const { GET } = await import("@/app/api/markdown/[[...path]]/route");
+
+    const found = await GET(new Request("http://said.test/"), { params: Promise.resolve({ path: [published.slug] }) });
+    expect(found.status).toBe(200);
+    expect(found.headers.get("content-type")).toContain("text/markdown");
+    expect(found.headers.get("vary")).toBe("Accept");
+    expect(await found.text()).toBe("# Negotiated chit");
+
+    const missing = await GET(new Request("http://said.test/"), { params: Promise.resolve({ path: ["missing-chit"] }) });
+    expect(missing.status).toBe(404);
+    expect(await missing.text()).toContain("/llms.txt");
   });
 });

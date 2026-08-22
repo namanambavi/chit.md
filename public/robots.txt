@@ -3,3 +3,4 @@ Allow: /
 Disallow: /claim/
 Disallow: /dashboard/
 Disallow: /api/v1/inbox/
+Sitemap: https://chit.md/sitemap.xml

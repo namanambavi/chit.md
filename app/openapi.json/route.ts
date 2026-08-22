@@ -9,7 +9,7 @@ const errorResponse = {
 export function GET() {
   return Response.json({
     openapi: "3.1.0",
-    info: { title: "chit.md API", version: "1.3.0", description: "Markdown in, public URL out." },
+    info: { title: "chit.md API", version: "1.4.0", description: "Publish Markdown as a public URL for people and agents." },
     servers: [{ url: appUrl() }],
     paths: {
       "/api/v1/drops": { post: {
@@ -69,7 +69,7 @@ export function GET() {
           owner: { type: ["object", "null"], properties: { name: { type: "string" } }, required: ["name"] },
         },
       },
-      Error: { type: "object", required: ["error"], properties: { error: { type: "string" } } },
+      Error: { type: "object", required: ["error", "message", "code", "hint"], properties: { error: { type: "string" }, message: { type: "string" }, code: { type: "string" }, hint: { type: "string" }, details: {} } },
     } },
   });
 }
