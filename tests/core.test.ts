@@ -99,7 +99,8 @@ describe("composer presentation", () => {
     expect(page).not.toContain("<Nav");
     expect(page).toContain("<AnalyticsIdentity");
     expect(form).toContain('className="composer-back"');
-    expect(form).toContain('placeholder="Title (optional)"');
+    expect(form).toContain('placeholder="Untitled chit"');
+    expect(form).toMatch(/composer-head[\s\S]*title-field[\s\S]*composer-actions/);
 
     const editor = fs.readFileSync(path.join(process.cwd(), "components/markdown-editor.tsx"), "utf8");
     expect(editor).toContain('const narrowViewportQuery = "(max-width: 900px)"');
