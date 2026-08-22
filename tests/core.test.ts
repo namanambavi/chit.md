@@ -5,6 +5,7 @@ import { hashToken, randomToken, tokensMatch } from "@/lib/security";
 import { publishSchema, titleFromMarkdown } from "@/lib/schemas";
 import { safeInternalPath } from "@/lib/navigation";
 import { formatExpiryCompact, formatExpiryRemaining } from "@/lib/expiry";
+import { docsMarkdown } from "@/lib/docs-content";
 
 const testDirectory = path.join(process.cwd(), "work");
 const testDatabase = path.join(testDirectory, "said-test.db");
@@ -34,6 +35,12 @@ describe("input contract", () => {
   it("rejects retired response and callback options", () => {
     expect(() => publishSchema.parse({ markdown: "# Hi", allow_responses: true })).toThrow();
     expect(() => publishSchema.parse({ markdown: "# Hi", callback_url: "https://example.com" })).toThrow();
+  });
+
+  it("gives agents one canonical account credential", () => {
+    expect(docsMarkdown).toContain("CHIT_API_KEY");
+    expect(docsMarkdown).toContain("Agent access");
+    expect(docsMarkdown).not.toContain("CHIT_SESSION_TOKEN");
   });
 });
 

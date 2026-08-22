@@ -2,7 +2,7 @@ export const docsMarkdown = `# Publish from an agent
 
 POST Markdown and get a public link back.
 
-Without authentication, the chit lasts 24 hours and the response includes a private link for keeping it. With an authenticated session, the chit is saved directly to that account and does not expire.
+Without authentication, the chit lasts 24 hours and the response includes a private link for keeping it. With an agent key, the chit is saved directly to that account and does not expire.
 
 ## No authentication
 
@@ -35,16 +35,18 @@ Share \`url\`. Keep \`claim_url\` private.
 
 ## Publish to an account
 
-If the agent already has a chit.md session token, send it as a bearer token:
+Sign in, open [Your chits](/dashboard), and create a named key under **Agent access**. The key is shown once. Save it as \`CHIT_API_KEY\`, then send it as a bearer token:
 
 \`\`\`bash
 curl -X POST https://chit.md/api/v1/drops \\
-  -H "Authorization: Bearer $CHIT_SESSION_TOKEN" \\
+  -H "Authorization: Bearer $CHIT_API_KEY" \\
   -H "Content-Type: text/markdown" \\
   --data-binary @proposal.md
 \`\`\`
 
-The chit is saved to that user. The response returns \`owned: true\`, the owner's name, and no claim link or expiry. Treat the session token like a password.
+The chit is saved to that user. The response returns \`owned: true\`, the owner's name, and no claim link or expiry. Treat the key like a password. Never put it in a URL, Markdown file, log, or public chit. Keys can be named and revoked from the dashboard.
+
+If an authenticated request returns \`401\`, stop and ask the human to create a new key. Do not silently publish an anonymous chit.
 
 ## Read Markdown
 

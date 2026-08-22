@@ -9,12 +9,12 @@ const errorResponse = {
 export function GET() {
   return Response.json({
     openapi: "3.1.0",
-    info: { title: "chit.md API", version: "1.2.0", description: "Markdown in, public URL out." },
+    info: { title: "chit.md API", version: "1.3.0", description: "Markdown in, public URL out." },
     servers: [{ url: appUrl() }],
     paths: {
       "/api/v1/drops": { post: {
         operationId: "publishDrop", summary: "Publish a Markdown page",
-        description: "Anonymous chits expire after 24 hours. Bearer-authenticated chits are saved directly to that account.",
+        description: "Anonymous chits expire after 24 hours. Chits authenticated with an account agent key are saved directly to that account.",
         security: [{}, { bearerAuth: [] }],
         requestBody: { required: true, content: {
           "application/json": { schema: { $ref: "#/components/schemas/PublishRequest" } },
@@ -22,7 +22,7 @@ export function GET() {
         } },
         responses: {
           "201": { description: "Page published", content: { "application/json": { schema: { $ref: "#/components/schemas/PublishResponse" } } } },
-          "400": errorResponse, "413": errorResponse, "429": errorResponse,
+          "400": errorResponse, "401": errorResponse, "413": errorResponse, "429": errorResponse,
         },
       } },
       "/api/v1/drops/{slug}": { get: {
@@ -40,7 +40,7 @@ export function GET() {
         },
       } },
     },
-    components: { securitySchemes: { bearerAuth: { type: "http", scheme: "bearer", description: "A chit.md session token." } }, schemas: {
+    components: { securitySchemes: { bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "chit_live_…", description: "A named agent key created at /dashboard. Send it as CHIT_API_KEY and keep it secret." } }, schemas: {
       PublishRequest: {
         type: "object", required: ["markdown"], additionalProperties: false,
         properties: {

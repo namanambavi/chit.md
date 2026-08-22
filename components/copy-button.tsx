@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { captureClientEvent } from "@/lib/analytics-client";
 
 export function CopyButton({ value, label = "Copy Markdown" }: { value: string; label?: string }) {
   const [state, setState] = useState<"idle" | "copied" | "error">("idle");
@@ -9,6 +10,7 @@ export function CopyButton({ value, label = "Copy Markdown" }: { value: string; 
     try {
       await navigator.clipboard.writeText(value);
       setState("copied");
+      captureClientEvent("markdown_copied");
       window.setTimeout(() => setState("idle"), 1600);
     } catch { setState("error"); }
   }

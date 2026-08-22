@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@heroui/react";
 import { authClient } from "@/lib/auth-client";
 import { safeInternalPath } from "@/lib/navigation";
+import { captureClientEvent, identifyClientUser } from "@/lib/analytics-client";
 
 type Mode = "sign-in" | "sign-up" | "forgot" | "reset";
 
@@ -23,7 +24,7 @@ export function AuthForm({ github, google, emailDelivery }: { github: boolean; g
   }
 
   async function social(provider: "github" | "google") {
-    setBusy(true); setError("");
+    setBusy(true); setError(""); captureClientEvent("auth_started", { provider });
     const result = await authClient.signIn.social({ provider, callbackURL: next });
     if (result?.error) { setError(result.error.message || "Could not sign in."); setBusy(false); }
   }
@@ -53,6 +54,8 @@ export function AuthForm({ github, google, emailDelivery }: { github: boolean; g
         : await authClient.signIn.email({ email, password, callbackURL: next });
       if (result.error) throw new Error(result.error.message || "Could not sign in.");
       if (mode === "sign-up" && emailDelivery) { setMessage("Check your email to finish creating the account."); return; }
+      if (result.data?.user?.id) identifyClientUser(result.data.user.id);
+      captureClientEvent("auth_completed", { provider: "email", mode });
       router.push(next); router.refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Something went wrong. Please try again.");

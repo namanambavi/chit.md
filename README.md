@@ -70,9 +70,19 @@ instructions and contract:
 | `/api/v1/drops` | Create a chit |
 | `/api/v1/drops/:slug/markdown` | Read the source Markdown |
 
-Authenticated browser sessions and bearer credentials both attach newly
-created chits to the authenticated account. Anonymous requests instead receive
-a 24-hour page and a private keep link.
+People can create named agent keys from **Agent access** on the dashboard. An
+agent stores the key as `CHIT_API_KEY` and sends it as a bearer credential:
+
+```bash
+curl -X POST https://chit.md/api/v1/drops \
+  -H "Authorization: Bearer $CHIT_API_KEY" \
+  -H "Content-Type: text/markdown" \
+  --data-binary @plan.md
+```
+
+The chit is saved directly to that account and does not expire. Keys are shown
+once, stored hashed, named, rate-limited, and independently revocable.
+Anonymous requests still receive a 24-hour page and private keep link.
 
 ## Product behavior
 
@@ -85,6 +95,8 @@ a 24-hour page and a private keep link.
 - Resend email verification and password reset delivery
 - Account dashboard, ownership, editing, and deletion
 - Owner attribution on saved public chits
+- Named, revocable agent keys for account-owned publishing
+- Privacy-conscious PostHog product analytics with manual client and server events
 - Rate limits, payload limits, hashed capability tokens, and untrusted HTML
   disabled during rendering
 - Light and dark themes with reduced-motion support
@@ -101,6 +113,8 @@ a 24-hour page and a private keep link.
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | For GitHub sign-in | OAuth application credentials |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | For Google sign-in | OAuth application credentials |
 | `RESEND_API_KEY` / `EMAIL_FROM` | For email delivery | Verification and password reset emails |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | For analytics | PostHog project token used by browser and server events |
+| `NEXT_PUBLIC_POSTHOG_HOST` | For analytics | PostHog ingestion host |
 
 The checked-in `.env.example` is safe to copy for local development.
 
@@ -131,11 +145,11 @@ npm run build
 
 ## Stack
 
-Next.js 16, React 19, TypeScript, CodeMirror 6, Better Auth, HeroUI, SQLite,
-React Markdown, and Vitest.
+Next.js 16, React 19, TypeScript, CodeMirror 6, Better Auth, HeroUI, Postgres,
+SQLite for local development, PostHog, React Markdown, and Vitest.
 
 ## Status
 
-This is an early, working product. The core publishing, reading, expiry,
-claiming, ownership, and agent flows are implemented; production hosting and
-the final `chit.md` DNS setup are the next operational steps.
+This is an early, working product running at [chit.md](https://chit.md). The
+core publishing, reading, expiry, claiming, ownership, agent-key, email, OAuth,
+analytics, and Railway/Postgres production flows are implemented.

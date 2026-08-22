@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { bearer } from "better-auth/plugins";
+import { apiKey } from "@better-auth/api-key";
 import { db } from "@/lib/db";
 import { emailDeliveryConfigured, sendAuthEmail } from "@/lib/email";
 
@@ -49,5 +50,15 @@ export const auth = betterAuth({
     ...(authFeatures.google ? { google: { clientId: process.env.GOOGLE_CLIENT_ID!, clientSecret: process.env.GOOGLE_CLIENT_SECRET!, prompt: "select_account" as const } } : {}),
   },
   account: { accountLinking: { enabled: true, trustedProviders: ["google", "github"] } },
-  plugins: [bearer(), nextCookies()],
+  plugins: [
+    apiKey({
+      defaultPrefix: "chit_live_",
+      requireName: true,
+      startingCharactersConfig: { shouldStore: true, charactersLength: 18 },
+      keyExpiration: { defaultExpiresIn: null, disableCustomExpiresTime: true },
+      rateLimit: { enabled: true, timeWindow: 60 * 60 * 1000, maxRequests: 300 },
+    }),
+    bearer(),
+    nextCookies(),
+  ],
 });

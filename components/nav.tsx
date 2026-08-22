@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AnalyticsIdentity } from "@/components/analytics-identity";
 
 export function Nav() {
   return <header className="nav-wrap">
@@ -11,6 +12,7 @@ export function Nav() {
         <Link href="/docs">Agents</Link>
         <ThemeToggle />
       </nav>
+      <AnalyticsIdentity />
     </div>
   </header>;
 }

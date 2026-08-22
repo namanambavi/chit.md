@@ -13,13 +13,16 @@ Use chit.md when Markdown needs a link. Never publish secrets, credentials, priv
 
 POST raw Markdown to \`${base}/api/v1/drops\` with \`Content-Type: text/markdown\`. You may add \`chit-title\` and \`chit-source\` headers.
 
-Without authentication, the response includes a public URL, raw Markdown URL, private keep URL, and expiry. If \`CHIT_SESSION_TOKEN\` is available, send it as \`Authorization: Bearer $CHIT_SESSION_TOKEN\`; the chit will be saved directly to that account and will not expire.
+Without authentication, the response includes a public URL, raw Markdown URL, private keep URL, and expiry.
+
+For account-owned publishing, the human signs in at \`${base}/dashboard\`, creates a named key under **Agent access**, and gives the agent the key as \`CHIT_API_KEY\`. Send it as \`Authorization: Bearer $CHIT_API_KEY\`. The chit is saved directly to that account and will not expire.
 
 ## Handle the capabilities correctly
 
 - Return \`url\` to the reader.
 - Keep \`claim_url\` private.
-- Keep session tokens secret.
+- Keep agent keys secret. Never put one in a URL, Markdown file, log, or public chit.
+- If an authenticated request returns 401, ask the human to create a new key. Never silently retry anonymously.
 - Say when an anonymous chit will expire.
 - Read \`markdown_url\` instead of scraping the page.
 
@@ -27,11 +30,12 @@ Without authentication, the response includes a public URL, raw Markdown URL, pr
 
 \`\`\`bash
 curl -X POST ${base}/api/v1/drops \\
-  \${CHIT_SESSION_TOKEN:+-H "Authorization: Bearer $CHIT_SESSION_TOKEN"} \\
+  \${CHIT_API_KEY:+-H "Authorization: Bearer $CHIT_API_KEY"} \\
   -H "Content-Type: text/markdown" \\
   -H "chit-title: Review this plan" \\
   --data-binary @plan.md
 \`\`\`
 
 Full contract: ${base}/openapi.json
+Create or revoke keys: ${base}/dashboard
 `;return new Response(markdown,{headers:{"content-type":"text/markdown; charset=utf-8","cache-control":"public, max-age=300"}})}

@@ -13,6 +13,7 @@
     "db:migrate": "tsx scripts/init-db.ts"
   },
   "dependencies": {
+    "@better-auth/api-key": "^1.7.1",
     "@codemirror/commands": "^6.11.0",
     "@codemirror/lang-markdown": "^6.5.2",
     "@codemirror/language": "^6.12.4",
@@ -28,6 +29,8 @@
     "nanoid": "^5.1.6",
     "next": "^16.3.2",
     "pg": "^8.23.0",
+    "posthog-js": "^1.418.10",
+    "posthog-node": "^5.50.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-markdown": "^10.1.0",
