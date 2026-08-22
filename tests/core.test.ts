@@ -100,11 +100,17 @@ describe("composer presentation", () => {
     expect(page).toContain("<AnalyticsIdentity");
     expect(form).toContain('className="composer-back"');
     expect(form).toContain('placeholder="Untitled chit"');
+    expect(form).not.toContain("The link opens as a page");
     expect(form).toMatch(/composer-head[\s\S]*title-field[\s\S]*composer-actions/);
 
     const editor = fs.readFileSync(path.join(process.cwd(), "components/markdown-editor.tsx"), "utf8");
+    const styles = fs.readFileSync(path.join(process.cwd(), "app/globals.css"), "utf8");
     expect(editor).toContain('const narrowViewportQuery = "(max-width: 900px)"');
     expect(editor).toContain('className="format-inserts"');
+    expect(styles).toMatch(/\.compose-shell\s*\{[^}]*min-height:\s*100dvh[^}]*display:\s*grid/);
+    expect(styles).toMatch(/\.compose-shell\s*>\s*\.composer\s*\{[^}]*grid-template-rows:\s*auto minmax\(0,1fr\)/);
+    expect(styles).toMatch(/\.markdown-editor\s*\{[^}]*grid-template-rows:\s*auto minmax\(0,1fr\) auto/);
+    expect(styles).toMatch(/\.editor-workspace\s*\{[^}]*min-height:\s*0/);
   });
 
   it("restores visible markers for rendered ordered and unordered lists", () => {
