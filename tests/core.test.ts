@@ -91,6 +91,30 @@ describe("agent-readable HTTP contracts", () => {
   });
 });
 
+describe("composer presentation", () => {
+  it("uses compact route chrome instead of the full site navigation", () => {
+    const page = fs.readFileSync(path.join(process.cwd(), "app/new/page.tsx"), "utf8");
+    const form = fs.readFileSync(path.join(process.cwd(), "components/new-drop-form.tsx"), "utf8");
+
+    expect(page).not.toContain("<Nav");
+    expect(page).toContain("<AnalyticsIdentity");
+    expect(form).toContain('className="composer-back"');
+    expect(form).toContain('placeholder="Title (optional)"');
+
+    const editor = fs.readFileSync(path.join(process.cwd(), "components/markdown-editor.tsx"), "utf8");
+    expect(editor).toContain('const narrowViewportQuery = "(max-width: 900px)"');
+    expect(editor).toContain('className="format-inserts"');
+  });
+
+  it("restores visible markers for rendered ordered and unordered lists", () => {
+    const css = fs.readFileSync(path.join(process.cwd(), "app/globals.css"), "utf8");
+
+    expect(css).toMatch(/\.markdown-rendered ul\s*\{\s*list-style:\s*disc;/);
+    expect(css).toMatch(/\.markdown-rendered ol\s*\{\s*list-style:\s*decimal;/);
+    expect(css).toContain(".markdown-rendered .task-list-item { list-style: none; }");
+  });
+});
+
 describe("expiry copy", () => {
   it("moves from hours to minutes to seconds", () => {
     expect(formatExpiryRemaining(24 * 3_600_000)).toBe("Expires in 24 hours");

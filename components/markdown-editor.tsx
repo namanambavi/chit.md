@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useSyncExternalStore } from "react";
 import { basicSetup } from "codemirror";
 import { EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
@@ -12,6 +12,17 @@ import { Markdown } from "@/components/markdown";
 import { CopyButton } from "@/components/copy-button";
 
 type Mode = "write" | "split" | "preview";
+const narrowViewportQuery = "(max-width: 900px)";
+
+function subscribeToNarrowViewport(callback: () => void) {
+  const media = window.matchMedia(narrowViewportQuery);
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
+}
+
+function getNarrowViewport() {
+  return window.matchMedia(narrowViewportQuery).matches;
+}
 
 const formatTools = [
   { label: "H1", title: "Heading 1", before: "# ", after: "", placeholder: "Heading" },
@@ -48,7 +59,9 @@ export function MarkdownEditor({ value, onChange }: { value: string; onChange: (
   const mount = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const initialValue = useRef(value);
-  const [mode, setMode] = useState<Mode>("split");
+  const [selectedMode, setSelectedMode] = useState<Mode | null>(null);
+  const isNarrowViewport = useSyncExternalStore(subscribeToNarrowViewport, getNarrowViewport, () => false);
+  const mode = selectedMode ?? (isNarrowViewport ? "write" : "split");
   const emitChange = useEffectEvent((nextValue: string) => onChange(nextValue));
 
   useEffect(() => {
@@ -91,11 +104,13 @@ export function MarkdownEditor({ value, onChange }: { value: string; onChange: (
   return <section className="markdown-editor chit-stack editor-chit" aria-label="Markdown editor">
     <div className="editor-toolbar">
       <div className="format-tools" aria-label="Formatting tools">
-        {formatTools.map((tool) => <button key={tool.label} type="button" title={tool.title} aria-label={tool.title} onClick={()=>insert(tool.before,tool.after,tool.placeholder)}>{tool.label}</button>)}
+        <div className="format-inserts">
+          {formatTools.map((tool) => <button key={tool.label} type="button" title={tool.title} aria-label={tool.title} onClick={()=>insert(tool.before,tool.after,tool.placeholder)}>{tool.label}</button>)}
+        </div>
         <CopyButton value={value}/>
       </div>
       <div className="view-switcher" aria-label="Editor view">
-        {(["write", "split", "preview"] as const).map((option) => <button key={option} type="button" className={mode===option?"active":""} aria-pressed={mode===option} onClick={()=>setMode(option)}>{option}</button>)}
+        {(["write", "split", "preview"] as const).map((option) => <button key={option} type="button" className={mode===option?"active":""} aria-pressed={mode===option} onClick={()=>setSelectedMode(option)}>{option}</button>)}
       </div>
     </div>
     <div className="editor-workspace" data-mode={mode}>
