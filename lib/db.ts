@@ -6,16 +6,20 @@ import { Pool, type QueryResultRow } from "pg";
 type ProductDatabase = Database.Database | Pool;
 const connectionString = process.env.DATABASE_URL;
 export const usesPostgres = Boolean(connectionString);
+const usesBuildDatabase = !connectionString && (
+  process.env.NEXT_PHASE === "phase-production-build" ||
+  process.env.npm_lifecycle_event === "build"
+);
 const globalForDb = globalThis as unknown as { chitDb?: ProductDatabase };
 
 function createDatabase(): ProductDatabase {
   if (connectionString) {
     return new Pool({ connectionString, max: Number(process.env.DATABASE_POOL_MAX || 10), idleTimeoutMillis: 30_000, connectionTimeoutMillis: 10_000 });
   }
-  const databasePath = process.env.DATABASE_PATH
+  const databasePath = usesBuildDatabase ? ":memory:" : process.env.DATABASE_PATH
     ? path.resolve(/* turbopackIgnore: true */ process.env.DATABASE_PATH)
     : path.join(process.cwd(), "data", "chit.db");
-  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+  if (!usesBuildDatabase) fs.mkdirSync(path.dirname(databasePath), { recursive: true });
   const sqlite = new Database(databasePath);
   sqlite.pragma("journal_mode = WAL");
   sqlite.pragma("foreign_keys = ON");
