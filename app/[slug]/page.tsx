@@ -13,7 +13,12 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params; const drop = await getDropBySlug(slug);
-  return drop ? { title: drop.title, description: `A chit passed through chit.md` } : await isExpiredChitSlug(slug) ? { title: "Chit expired" } : { title: "Page unavailable" };
+  return drop ? {
+    title: drop.title,
+    description: "A public Markdown chit passed through chit.md.",
+    openGraph: { title: drop.title, description: "A public Markdown chit passed through chit.md.", type: "article" },
+    twitter: { card: "summary_large_image", title: drop.title, description: "A public Markdown chit passed through chit.md." },
+  } : await isExpiredChitSlug(slug) ? { title: "Chit expired" } : { title: "Page unavailable" };
 }
 
 export default async function DropPage({ params }: { params: Promise<{ slug: string }> }) {

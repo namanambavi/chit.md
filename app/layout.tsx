@@ -5,6 +5,18 @@ export const metadata: Metadata = {
   title: { default: "chit.md — Markdown, on a link", template: "%s — chit.md" },
   description: "Publish Markdown as a clean public URL for people and agents.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  applicationName: "chit.md",
+  openGraph: {
+    type: "website",
+    siteName: "chit.md",
+    title: "chit.md — Markdown, on a link",
+    description: "Publish Markdown as a clean public URL for people and agents.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "chit.md — Markdown, on a link",
+    description: "Publish Markdown as a clean public URL for people and agents.",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
